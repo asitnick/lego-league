@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Week 7: History Helpers — Session Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(165deg, #fef9f0 0%, #fdf2e3 50%, #f5ebe0 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: #1c1917;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; }
+  .container.has-nav { padding-bottom: 100px; }
+
+  /* Overview screen */
+  .overview-header { text-align: center; margin-bottom: 28px; }
+  .overview-header .icon { font-size: 40px; margin-bottom: 4px; }
+  .overview-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; color: #292524; margin: 0 0 4px;
+  }
+  .overview-header p { color: #78716c; font-size: 14px; margin: 0; }
+
+  .step-list { display: flex; flex-direction: column; gap: 8px; }
+  .step-list-item {
+    display: flex; align-items: center; gap: 12px;
+    background: white; border: 1px solid #e7e5e4; border-radius: 12px;
+    padding: 12px 14px; cursor: pointer; text-align: left;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-list-item:active { transform: scale(0.98); }
+  .step-icon-box {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .step-list-item .phase-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 2px;
+  }
+  .step-list-item .step-title {
+    font-size: 14px; font-weight: 600; color: #1c1917;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .step-list-item .time { font-size: 12px; color: #a8a29e; font-weight: 600; flex-shrink: 0; }
+
+  .start-btn {
+    display: block; width: 100%; margin-top: 20px; padding: 14px 0;
+    background: #292524; color: white; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .start-btn:active { transform: scale(0.98); }
+
+  /* Step view */
+  .step-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .overview-btn {
+    background: white; border: 1px solid #e7e5e4; border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: #57534e; font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-counter {
+    font-size: 13px; font-weight: 700; color: #78716c;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .progress-track {
+    height: 4px; background: #e7e5e4; border-radius: 2px;
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 2px; transition: width 0.3s ease;
+  }
+  .phase-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px; color: white;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .step-view-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: #1c1917; margin: 6px 0 0; line-height: 1.2;
+  }
+
+  .card {
+    background: white; border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 14px; border: 1px solid #e7e5e4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #a8a29e; margin-bottom: 10px;
+  }
+  .instruction {
+    font-size: 14px; color: #44403c; line-height: 1.55;
+    margin-bottom: 8px; padding-left: 10px; border-left: 3px solid transparent;
+  }
+  .instruction:last-child { margin-bottom: 0; }
+
+  /* Questions card - the hero */
+  .questions-card {
+    border-radius: 14px; padding: 16px; margin-bottom: 14px;
+  }
+  .questions-label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .question-item {
+    background: white; border-radius: 10px; padding: 10px 14px;
+    margin-bottom: 8px; font-size: 15px; font-weight: 500;
+    color: #1c1917; line-height: 1.45;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    border-left: 4px solid transparent;
+  }
+  .question-item:last-child { margin-bottom: 0; }
+
+  .followup-card {
+    background: #fffbeb; border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 14px; border: 1px solid #fde68a;
+    font-size: 13px; color: #92400e; line-height: 1.5;
+  }
+
+  /* Timer */
+  .timer-row { display: flex; align-items: center; gap: 10px; }
+  .timer-ring { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+  .timer-text {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+  }
+  .timer-btn {
+    border: none; border-radius: 8px; padding: 6px 14px;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .timer-btn.start { background: #d1fae5; color: #065f46; }
+  .timer-btn.pause { background: #fee2e2; color: #b91c1c; }
+  .timer-btn.reset { background: #f3f4f6; color: #6b7280; padding: 6px 10px; }
+
+  /* Fixed bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: rgba(253,242,227,0.95); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid #e7e5e4;
+    display: flex; gap: 10px; max-width: 500px; margin: 0 auto;
+  }
+  .nav-btn {
+    padding: 14px 0; border-radius: 12px; font-size: 15px;
+    font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; border: none;
+  }
+  .nav-btn:active { transform: scale(0.97); }
+  .nav-btn.back {
+    flex: 1; background: white; color: #57534e; border: 1px solid #e7e5e4;
+  }
+  .nav-btn.back:disabled { color: #d6d3d1; }
+  .nav-btn.next {
+    flex: 2; background: #292524; color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  .nav-btn.next:disabled { background: #d6d3d1; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const STEPS = [
+  {
+    phase: "Introduction", phaseColor: "#D97706",
+    title: "Discovery Mini Build", timeMinutes: 10, icon: "🔍",
+    instructions: [
+      'Read the definition of Discovery to the team (TMG p.9): "We explore new skills and ideas."'
+    ],
+    questions: [
+      "What is something you learned how to do in LEGO League Explore?",
+      "How did it feel to learn that new skill?",
+      "Why is it important to keep learning new things?",
+      "How does discovery make our team stronger?"
+    ],
+    followUp: "Have team members turn to Engineering Notebook p.9 and review core values learned this season."
+  },
+  {
+    phase: "Introduction", phaseColor: "#D97706",
+    title: "Core Value Mini Build", timeMinutes: 5, icon: "🧱",
+    instructions: [
+      "Have each team member build a small LEGO model that represents any core value from this season using the prototyping pieces (loose LEGO).",
+      "Examples: a computer for Discovery, mini figs for Teamwork.",
+      "⏱ Keep this to 3–5 minutes max!"
+    ],
+    questions: [
+      "What did you build?",
+      "Which core value does your model show?",
+      "How does your model represent that value?"
+    ],
+    followUp: "Ask each member one by one to explain their build."
+  },
+  {
+    phase: "Task 1", phaseColor: "#059669",
+    title: "Archaeology Careers — Explore", timeMinutes: 10, icon: "👩‍🔬",
+    instructions: [
+      "Have the team review careers on Engineering Notebook pages 5, 28, and 29.",
+      "Talk through each job together as a group."
+    ],
+    questions: [
+      "What are some of this job's daily tasks?",
+      "What makes this job exciting?",
+      "What kind of tools or technology are used?",
+      "Where does this person work?"
+    ],
+    followUp: null
+  },
+  {
+    phase: "Task 1", phaseColor: "#059669",
+    title: "Archaeology Careers — Draw & Build", timeMinutes: 10, icon: "✏️",
+    instructions: [
+      "Each student picks one archaeology career that interests them.",
+      "Have them write or draw a person doing that job on Engineering Notebook p.20.",
+      "Then, each member picks a minifig to represent themselves and builds a mini LEGO model showing their chosen career. Use loose LEGO from the bin.",
+      "Encourage them to think about: tools used, and the location where their career takes place."
+    ],
+    questions: [
+      "Why did you pick this career?",
+      "What parts of your model show the tools used in this job?",
+      "Where does this person work — at a dig site, in a lab, or somewhere else?"
+    ],
+    followUp: "💡 This practices explaining a model and giving opinions — great prep for the Festival!"
+  },
+  {
+    phase: "Task 2", phaseColor: "#7C3AED",
+    title: "Motorize Excavation — Intro to Millstones", timeMinutes: 5, icon: "⚙️",
+    instructions: [
+      "Tell students they will motorize the millstone inside the excavation site model.",
+      "Explain: Millstones grind grain and hard items (wheat, corn, spices) into fine flour. They are difficult to make and often shared by an entire community.",
+      "Millstones can be powered by animals, water, or people. Modern milling is done by machines in factories.",
+      "📹 Optional video: \"Millstones: Wheat Flour Milling\" (1:13) — youtube.com"
+    ],
+    questions: [
+      "What do you think a millstone does?",
+      "What could power a millstone — animals, water, or people?",
+      "Why would a whole community share one millstone?"
+    ],
+    followUp: "Have team find the millstone in the Explore excavation model (the part with gears you can turn)."
+  },
+  {
+    phase: "Task 2", phaseColor: "#7C3AED",
+    title: "Motorize Excavation — Build & Code", timeMinutes: 15, icon: "🤖",
+    instructions: [
+      "Follow Building Instruction Booklet 2, pages 98–109 to motorize the millstone.",
+      "Then open SPIKE programming app → New Project → select 'Icon Blocks' → create a program to rotate the millstone.",
+      "💡 Let the team try coding on their own first before showing the example on Booklet 2, p.110."
+    ],
+    questions: [
+      "What do you think will happen when we run this code?",
+      "Can you make it go faster? Slower?",
+      "What else could you add — a time limit? A sound?"
+    ],
+    followUp: "Optional: Place model on cardboard mat. Ask team to add their Task 1 career mini-builds to the excavation site. Where would each person work?"
+  },
+  {
+    phase: "Share & Clean-up", phaseColor: "#DC2626",
+    title: "Reflect & Wrap Up", timeMinutes: 10, icon: "🎉",
+    instructions: [
+      "Lead the team in a discussion of what they learned.",
+      "Take apart the career models and return LEGO to the bin.",
+      "💡 You may want to keep the motor, brick, and mount together — the team will use them for the final model next week!"
+    ],
+    questions: [
+      "What is one new thing you learned today?",
+      "What archaeology career interests you the most?",
+      "What is a millstone and why is it important?",
+      "Was it easy or hard to motorize the millstone?"
+    ],
+    followUp: null
+  }
+];
+
+// State
+let currentStep = 0;
+let showOverview = true;
+let timerSeconds = 0;
+let timerRunning = false;
+let timerStarted = false;
+let timerInterval = null;
+
+function render() {
+  document.getElementById('app').innerHTML = showOverview ? renderOverview() : renderStep();
+  attachEvents();
+}
+
+function renderOverview() {
+  return `
+    <div class="container">
+      <div class="overview-header">
+        <div class="icon">🏺</div>
+        <h1>Week 7: History Helpers</h1>
+        <p>Session Runner — ${STEPS.length} steps · ~60 min</p>
+      </div>
+      <div class="step-list">
+        ${STEPS.map((s, i) => `
+          <div class="step-list-item" data-goto="${i}">
+            <div class="step-icon-box" style="background:${s.phaseColor}18">${s.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div class="phase-label" style="color:${s.phaseColor}">${s.phase}</div>
+              <div class="step-title">${s.title}</div>
+            </div>
+            <div class="time">${s.timeMinutes}m</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="start-btn" data-goto="0">Start Session ▸</button>
+    </div>
+  `;
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  const pct = ((currentStep + 1) / STEPS.length) * 100;
+  const totalSec = step.timeMinutes * 60;
+  const isOver = timerSeconds < 0;
+  const ringPct = Math.max(0, timerSeconds / totalSec) * 100;
+  const circumference = 2 * Math.PI * 24;
+  const offset = circumference * (1 - ringPct / 100);
+  const absM = Math.floor(Math.abs(timerSeconds) / 60);
+  const absS = Math.abs(timerSeconds) % 60;
+  const timerDisplay = `${isOver ? '-' : ''}${absM}:${absS.toString().padStart(2, '0')}`;
+
+  return `
+    <div class="container has-nav">
+      <div class="step-header">
+        <button class="overview-btn" id="overviewBtn">☰ Overview</button>
+        <div class="step-counter">${currentStep + 1} / ${STEPS.length}</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${pct}%;background:${step.phaseColor}"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="phase-badge" style="background:${step.phaseColor}">${step.phase} · ${step.timeMinutes} min</div>
+        <h2 class="step-view-title">${step.icon} ${step.title}</h2>
+      </div>
+
+      <div class="card">
+        <div class="timer-row">
+          <div class="timer-ring">
+            <svg width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="24" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+              <circle cx="28" cy="28" r="24" fill="none" stroke="${isOver ? '#ef4444' : '#10b981'}"
+                stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                stroke-linecap="round" transform="rotate(-90 28 28)"
+                style="transition:stroke-dashoffset 1s linear"/>
+            </svg>
+            <div class="timer-text" style="color:${isOver ? '#ef4444' : '#1f2937'}">${timerDisplay}</div>
+          </div>
+          <button class="timer-btn ${timerRunning ? 'pause' : 'start'}" id="timerToggle">
+            ${!timerStarted ? 'Start' : timerRunning ? 'Pause' : 'Resume'}
+          </button>
+          ${timerStarted ? '<button class="timer-btn reset" id="timerReset">Reset</button>' : ''}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">What to do</div>
+        ${step.instructions.map(inst => `
+          <div class="instruction" style="border-left-color:${step.phaseColor}22">${inst}</div>
+        `).join('')}
+      </div>
+
+      <div class="questions-card" style="background:linear-gradient(135deg,${step.phaseColor}12,${step.phaseColor}08);border:2px solid ${step.phaseColor}40;box-shadow:0 2px 12px ${step.phaseColor}15">
+        <div class="questions-label" style="color:${step.phaseColor}">
+          <span style="font-size:16px">💬</span> Ask the Kids
+        </div>
+        ${step.questions.map(q => `
+          <div class="question-item" style="border-left-color:${step.phaseColor}">${q}</div>
+        `).join('')}
+      </div>
+
+      ${step.followUp ? `<div class="followup-card"><strong>Then:</strong> ${step.followUp}</div>` : ''}
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-btn back" id="prevBtn" ${currentStep === 0 ? 'disabled' : ''}>◂ Back</button>
+      <button class="nav-btn next" id="nextBtn" ${currentStep === STEPS.length - 1 ? 'disabled' : ''}>
+        ${currentStep === STEPS.length - 1 ? 'Done! 🎉' : 'Next Step ▸'}
+      </button>
+    </div>
+  `;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRunning = false;
+  timerStarted = false;
+  timerSeconds = STEPS[currentStep].timeMinutes * 60;
+}
+
+function startTimer() {
+  timerStarted = true;
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    render();
+  }, 1000);
+}
+
+function attachEvents() {
+  // Overview: step list items and start button
+  document.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', () => {
+      currentStep = parseInt(el.dataset.goto);
+      showOverview = false;
+      resetTimer();
+      render();
+    });
+  });
+
+  const overviewBtn = document.getElementById('overviewBtn');
+  if (overviewBtn) overviewBtn.addEventListener('click', () => { showOverview = true; resetTimer(); render(); });
+
+  const prevBtn = document.getElementById('prevBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    if (currentStep > 0) { currentStep--; resetTimer(); render(); }
+  });
+
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    if (currentStep < STEPS.length - 1) { currentStep++; resetTimer(); render(); }
+  });
+
+  const timerToggle = document.getElementById('timerToggle');
+  if (timerToggle) timerToggle.addEventListener('click', () => {
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      render();
+    } else {
+      startTimer();
+      render();
+    }
+  });
+
+  const timerResetBtn = document.getElementById('timerReset');
+  if (timerResetBtn) timerResetBtn.addEventListener('click', () => { resetTimer(); render(); });
+}
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (showOverview) return;
+  if (e.key === 'ArrowRight' && currentStep < STEPS.length - 1) { currentStep++; resetTimer(); render(); }
+  if (e.key === 'ArrowLeft' && currentStep > 0) { currentStep--; resetTimer(); render(); }
+});
+
+// Init
+resetTimer();
+render();
+</script>
+</body>
+</html>
