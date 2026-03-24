@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Week 9: Team Poster — Session Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(165deg, #fdf2f8 0%, #fce7f3 50%, #f5e1ed 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: #1c1917;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; }
+  .container.has-nav { padding-bottom: 100px; }
+  .overview-header { text-align: center; margin-bottom: 28px; }
+  .overview-header .icon { font-size: 40px; margin-bottom: 4px; }
+  .overview-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; color: #1e1b2e; margin: 0 0 4px;
+  }
+  .overview-header p { color: #78716c; font-size: 14px; margin: 0; }
+  .step-list { display: flex; flex-direction: column; gap: 8px; }
+  .step-list-item {
+    display: flex; align-items: center; gap: 12px;
+    background: white; border: 1px solid #f0e0ea; border-radius: 12px;
+    padding: 12px 14px; cursor: pointer; text-align: left;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-list-item:active { transform: scale(0.98); }
+  .step-icon-box {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .step-list-item .phase-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 2px;
+  }
+  .step-list-item .step-title {
+    font-size: 14px; font-weight: 600; color: #1e1b2e;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .step-list-item .time { font-size: 12px; color: #a8a29e; font-weight: 600; flex-shrink: 0; }
+  .start-btn {
+    display: block; width: 100%; margin-top: 20px; padding: 14px 0;
+    background: #1e1b2e; color: white; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .start-btn:active { transform: scale(0.98); }
+  .step-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .overview-btn {
+    background: white; border: 1px solid #f0e0ea; border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: #57534e; font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-counter {
+    font-size: 13px; font-weight: 700; color: #78716c;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .progress-track {
+    height: 4px; background: #f0e0ea; border-radius: 2px;
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+  .phase-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px; color: white;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .step-view-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: #1e1b2e; margin: 6px 0 0; line-height: 1.2;
+  }
+  .card {
+    background: white; border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 14px; border: 1px solid #f0e0ea;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #a8a29e; margin-bottom: 10px;
+  }
+  .instruction {
+    font-size: 14px; color: #44403c; line-height: 1.55;
+    margin-bottom: 8px; padding-left: 10px; border-left: 3px solid transparent;
+  }
+  .instruction:last-child { margin-bottom: 0; }
+  .questions-card { border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .questions-label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .question-item {
+    background: white; border-radius: 10px; padding: 10px 14px;
+    margin-bottom: 8px; font-size: 15px; font-weight: 500;
+    color: #1e1b2e; line-height: 1.45;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    border-left: 4px solid transparent;
+  }
+  .question-item:last-child { margin-bottom: 0; }
+  .followup-card {
+    background: #fffbeb; border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 14px; border: 1px solid #fde68a;
+    font-size: 13px; color: #92400e; line-height: 1.5;
+  }
+  .intro-card {
+    background: linear-gradient(135deg, #fdf4ff, #fce7f3);
+    border-radius: 14px; padding: 18px 16px; margin-bottom: 14px;
+    border: 2px solid #f9a8d4;
+  }
+  .intro-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; color: #831843; margin-bottom: 10px;
+  }
+  .intro-card p {
+    font-size: 14px; color: #6b2150; line-height: 1.6; margin-bottom: 8px;
+  }
+  .intro-card p:last-child { margin-bottom: 0; }
+  .intro-card .hype { font-size: 15px; font-weight: 700; color: #be185d; }
+  .timer-row { display: flex; align-items: center; gap: 10px; }
+  .timer-ring { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+  .timer-text {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+  }
+  .timer-btn {
+    border: none; border-radius: 8px; padding: 6px 14px;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .timer-btn.start { background: #d1fae5; color: #065f46; }
+  .timer-btn.pause { background: #fee2e2; color: #b91c1c; }
+  .timer-btn.reset { background: #f3f4f6; color: #6b7280; padding: 6px 10px; }
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: rgba(252,231,243,0.95); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid #f0e0ea;
+    display: flex; gap: 10px; max-width: 500px; margin: 0 auto;
+  }
+  .nav-btn {
+    padding: 14px 0; border-radius: 12px; font-size: 15px;
+    font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; border: none;
+  }
+  .nav-btn:active { transform: scale(0.97); }
+  .nav-btn.back { flex: 1; background: white; color: #57534e; border: 1px solid #f0e0ea; }
+  .nav-btn.back:disabled { color: #d6d3d1; }
+  .nav-btn.next { flex: 2; background: #1e1b2e; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .nav-btn.next:disabled { background: #d6d3d1; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const STEPS = [
+  {
+    phase: "Welcome", phaseColor: "#be185d",
+    title: "Today's Game Plan", timeMinutes: 2, icon: "🌟",
+    isIntro: true,
+    introHTML: `
+      <h3>Hey team — here's what we're doing today!</h3>
+      <p>First, we're going to talk about two awesome core values: <strong>Innovation</strong> (using your creativity to solve problems) and <strong>Inclusion</strong> (making sure everyone is part of the team). You'll do a quick build challenge together!</p>
+      <p>Then comes the really exciting part — we're going to start making our <strong>Team Poster</strong> for the Festival! 🎉 This is YOUR poster to show off everything you've learned about archaeology this season. You get to decide what goes on it, how it looks, and how to decorate it.</p>
+      <p class="hype">By the end of today, you'll have a poster that's starting to look amazing — and you'll get to show it off to real Festival Reviewers soon! Let's go! 🚀</p>
+    `,
+    instructions: [],
+    questions: [],
+    followUp: null
+  },
+  {
+    phase: "Introduction", phaseColor: "#D97706",
+    title: "Innovation & Inclusion Mini Build", timeMinutes: 15, icon: "💡",
+    instructions: [
+      'Read the definitions to the team (TMG p.7):',
+      'Innovation: "We use creativity and persistence to solve problems."',
+      'Inclusion: "We respect each other and embrace our differences."',
+      'Remind the team they\'ve talked about these before. Ask for examples from the season.'
+    ],
+    questions: [
+      "When did your team innovate together to reach a common goal?",
+      "When is a time you made sure to include everyone on the team in an activity or decision?",
+      "How does using these core values make the team better?"
+    ],
+    followUp: null
+  },
+  {
+    phase: "Introduction", phaseColor: "#D97706",
+    title: "Collaborative Build", timeMinutes: 5, icon: "🧱",
+    instructions: [
+      "As a TEAM, build ONE model together that shows innovation and inclusion happening. It doesn't have to be from a team meeting — it can be anything! (Examples: a playground, a classroom.)",
+      "Use prototyping pieces (loose LEGO) from the bin.",
+      "⏱ After about 5 minutes, have them stop and explain their model."
+    ],
+    questions: [
+      "What did you build?",
+      "How does your model show innovation and inclusion?"
+    ],
+    followUp: "Have the team take apart the model and put away the prototyping pieces."
+  },
+  {
+    phase: "Task 1", phaseColor: "#059669",
+    title: "Introduce the Team Poster", timeMinutes: 10, icon: "🖼️",
+    instructions: [
+      "Explain: It's time to create the team poster for the Festival! But first, we plan.",
+      "Reassure them — they do NOT have to finish the poster today.",
+      "The poster shows what they learned during the season.",
+      "It can showcase anything they think is important: their code, favorite core values, their model, archaeology careers, or anything else!",
+      "They can use anything: printouts of code, photos, internet printouts, pages cut from Engineering Notebooks.",
+      "They can decorate however much they want with any materials.",
+      "They'll show the poster to Reviewers at the Festival and explain who worked on what.",
+      "💡 Show example photos from the 'How to Make a Team Poster' page."
+    ],
+    questions: [
+      "What are you most proud of from this season?",
+      "What's something cool you learned that you want to show off?"
+    ],
+    followUp: null
+  },
+  {
+    phase: "Task 1", phaseColor: "#059669",
+    title: "Plan the Poster Layout", timeMinutes: 10, icon: "📐",
+    instructions: [
+      "Lay the trifold in the middle of the work surface.",
+      "Lead a discussion about how the poster should look.",
+      "💡 Check the 'How to Make a Team Poster' page for a layout diagram.",
+      "💡 Leave space for any photos or printouts that still need to be added next week."
+    ],
+    questions: [
+      "What do you want to include on your poster?",
+      "Where should we put each item on the trifold?",
+      "Do you want to decorate a lot, or keep it simple?"
+    ],
+    followUp: "Once the layout is finalized, help the team divide up the work: who glues, who writes titles/captions, who cuts things out, who draws."
+  },
+  {
+    phase: "Task 2", phaseColor: "#7C3AED",
+    title: "Build the Poster!", timeMinutes: 20, icon: "✂️",
+    instructions: [
+      "Have the team start attaching elements to the trifold according to their plan.",
+      "⚠️ Glue tip: Glue sticks are easy but items often fall off! Use white school glue (Elmer's), double-stick tape, or a hot glue gun for a stronger hold.",
+      "Add decorative elements (stickers, glitter glue, etc.) AFTER everything else is attached.",
+      "⚠️ If using glitter glue or paint, leave enough drying time — wet trifolds are hard to transport!"
+    ],
+    questions: [],
+    followUp: null
+  },
+  {
+    phase: "Share & Clean-up", phaseColor: "#DC2626",
+    title: "Reflect & Plan for Next Week", timeMinutes: 10, icon: "🎉",
+    instructions: [
+      "Lead the team in a discussion of what they accomplished.",
+      "Make a list of anything that still needs to be brought next week (photos, printouts, etc.).",
+      "Explain: Next meeting, the team will decide how to present the poster and model to Festival Reviewers.",
+      "Have students clean up and put away materials.",
+      "Collect Engineering Notebooks and Team Meeting Guide into the bin.",
+      "⚠️ Check that the team name and a contact email/phone number is on the BACK of the trifold."
+    ],
+    questions: [
+      "How does the poster show the journey of your season?",
+      "What part of the poster are you most proud of?",
+      "How would you describe the things on your poster to a Festival Reviewer?"
+    ],
+    followUp: null
+  }
+];
+
+let currentStep = 0;
+let showOverview = true;
+let timerSeconds = 0;
+let timerRunning = false;
+let timerStarted = false;
+let timerInterval = null;
+
+function render() {
+  document.getElementById('app').innerHTML = showOverview ? renderOverview() : renderStep();
+  attachEvents();
+}
+
+function renderOverview() {
+  return `
+    <div class="container">
+      <div class="overview-header">
+        <div class="icon">🖼️</div>
+        <h1>Week 9: Team Poster</h1>
+        <p>Session Runner — ${STEPS.length} steps · ~70 min</p>
+      </div>
+      <div class="step-list">
+        ${STEPS.map((s, i) => `
+          <div class="step-list-item" data-goto="${i}">
+            <div class="step-icon-box" style="background:${s.phaseColor}18">${s.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div class="phase-label" style="color:${s.phaseColor}">${s.phase}</div>
+              <div class="step-title">${s.title}</div>
+            </div>
+            <div class="time">${s.timeMinutes}m</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="start-btn" data-goto="0">Start Session ▸</button>
+    </div>
+  `;
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  const pct = ((currentStep + 1) / STEPS.length) * 100;
+  const totalSec = step.timeMinutes * 60;
+  const isOver = timerSeconds < 0;
+  const ringPct = Math.max(0, timerSeconds / totalSec) * 100;
+  const circumference = 2 * Math.PI * 24;
+  const offset = circumference * (1 - ringPct / 100);
+  const absM = Math.floor(Math.abs(timerSeconds) / 60);
+  const absS = Math.abs(timerSeconds) % 60;
+  const timerDisplay = `${isOver ? '-' : ''}${absM}:${absS.toString().padStart(2, '0')}`;
+
+  let introHTML = '';
+  if (step.isIntro) {
+    introHTML = `<div class="intro-card">${step.introHTML}</div>`;
+  }
+
+  let instructionsHTML = '';
+  if (step.instructions && step.instructions.length > 0) {
+    instructionsHTML = `
+      <div class="card">
+        <div class="card-label">What to do</div>
+        ${step.instructions.map(inst => `
+          <div class="instruction" style="border-left-color:${step.phaseColor}22">${inst}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  let questionsHTML = '';
+  if (step.questions && step.questions.length > 0) {
+    questionsHTML = `
+      <div class="questions-card" style="background:linear-gradient(135deg,${step.phaseColor}12,${step.phaseColor}08);border:2px solid ${step.phaseColor}40;box-shadow:0 2px 12px ${step.phaseColor}15">
+        <div class="questions-label" style="color:${step.phaseColor}">
+          <span style="font-size:16px">💬</span> Ask the Kids
+        </div>
+        ${step.questions.map(q => `
+          <div class="question-item" style="border-left-color:${step.phaseColor}">${q}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="container has-nav">
+      <div class="step-header">
+        <button class="overview-btn" id="overviewBtn">☰ Overview</button>
+        <div class="step-counter">${currentStep + 1} / ${STEPS.length}</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${pct}%;background:${step.phaseColor}"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="phase-badge" style="background:${step.phaseColor}">${step.phase} · ${step.timeMinutes} min</div>
+        <h2 class="step-view-title">${step.icon} ${step.title}</h2>
+      </div>
+
+      <div class="card">
+        <div class="timer-row">
+          <div class="timer-ring">
+            <svg width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="24" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+              <circle cx="28" cy="28" r="24" fill="none" stroke="${isOver ? '#ef4444' : '#10b981'}"
+                stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                stroke-linecap="round" transform="rotate(-90 28 28)"
+                style="transition:stroke-dashoffset 1s linear"/>
+            </svg>
+            <div class="timer-text" style="color:${isOver ? '#ef4444' : '#1e1b2e'}">${timerDisplay}</div>
+          </div>
+          <button class="timer-btn ${timerRunning ? 'pause' : 'start'}" id="timerToggle">
+            ${!timerStarted ? 'Start' : timerRunning ? 'Pause' : 'Resume'}
+          </button>
+          ${timerStarted ? '<button class="timer-btn reset" id="timerReset">Reset</button>' : ''}
+        </div>
+      </div>
+
+      ${introHTML}
+      ${instructionsHTML}
+      ${questionsHTML}
+
+      ${step.followUp ? `<div class="followup-card"><strong>Then:</strong> ${step.followUp}</div>` : ''}
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-btn back" id="prevBtn" ${currentStep === 0 ? 'disabled' : ''}>◂ Back</button>
+      <button class="nav-btn next" id="nextBtn" ${currentStep === STEPS.length - 1 ? 'disabled' : ''}>
+        ${currentStep === STEPS.length - 1 ? 'Done! 🎉' : 'Next Step ▸'}
+      </button>
+    </div>
+  `;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRunning = false;
+  timerStarted = false;
+  timerSeconds = STEPS[currentStep].timeMinutes * 60;
+}
+
+function startTimer() {
+  timerStarted = true;
+  timerRunning = true;
+  timerInterval = setInterval(() => { timerSeconds--; render(); }, 1000);
+}
+
+function attachEvents() {
+  document.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', () => {
+      currentStep = parseInt(el.dataset.goto);
+      showOverview = false;
+      resetTimer();
+      render();
+    });
+  });
+  const overviewBtn = document.getElementById('overviewBtn');
+  if (overviewBtn) overviewBtn.addEventListener('click', () => { showOverview = true; resetTimer(); render(); });
+  const prevBtn = document.getElementById('prevBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    if (currentStep > 0) { currentStep--; resetTimer(); render(); }
+  });
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    if (currentStep < STEPS.length - 1) { currentStep++; resetTimer(); render(); }
+  });
+  const timerToggle = document.getElementById('timerToggle');
+  if (timerToggle) timerToggle.addEventListener('click', () => {
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      render();
+    } else {
+      startTimer();
+      render();
+    }
+  });
+  const timerResetBtn = document.getElementById('timerReset');
+  if (timerResetBtn) timerResetBtn.addEventListener('click', () => { resetTimer(); render(); });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (showOverview) return;
+  if (e.key === 'ArrowRight' && currentStep < STEPS.length - 1) { currentStep++; resetTimer(); render(); }
+  if (e.key === 'ArrowLeft' && currentStep > 0) { currentStep--; resetTimer(); render(); }
+});
+
+resetTimer();
+render();
+</script>
+</body>
+</html>
